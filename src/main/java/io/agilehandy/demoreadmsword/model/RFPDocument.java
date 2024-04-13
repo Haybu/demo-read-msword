@@ -1,68 +1,69 @@
 package io.agilehandy.demoreadmsword.model;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.common.util.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class RFPDocument {
 
     private String title;
-    private List<SectionQuestionAnswer> sections;
+    List<QuestionAnswer> questions;
 
     public RFPDocument() {}
 
-    public String getTitle() {
-        return title;
+    public void addNewQuestion(String txt, String section, String subSection, String subSectionDescription) {
+        QuestionAnswer questionnaire = new QuestionAnswer();
+        questionnaire.appendToQuestion(txt);
+        if (!StringUtils.isEmpty(section)) questionnaire.appendToSection(section);
+        if (!StringUtils.isEmpty(subSection)) questionnaire.appendToSubSection(subSection);
+        if (!StringUtils.isEmpty(subSectionDescription)) questionnaire.appendToSubSectionDescription(subSectionDescription);
+        if (questions == null) { questions = new ArrayList<>(); }
+        questions.add(questionnaire);
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void appendSection(String txt) {
+        QuestionAnswer questionnaire = questions.get(questions.size()-1);
+        questionnaire.appendToSection(txt);
     }
 
-    public List<SectionQuestionAnswer> getSections() {
-        return sections;
+    public void appendSubSection(String txt) {
+        QuestionAnswer questionnaire = questions.get(questions.size()-1);
+        questionnaire.appendToSubSection(txt);
     }
 
-    public void setSections(List<SectionQuestionAnswer> sections) {
-        this.sections = sections;
-    }
-
-    public void addNewSection(String sectionName) {
-        if (this.sections == null) {
-            sections = new ArrayList<>();
-        }
-        SectionQuestionAnswer newSection = new SectionQuestionAnswer();
-        newSection.setSectionName(sectionName);
-        this.sections.add(newSection);
-    }
-
-    public void setSubSectionName(String subSectionName) {
-        SectionQuestionAnswer sectionQuestionAnswer = sections.get(sections.size() - 1);
-        sectionQuestionAnswer.setSubSectionName(subSectionName);
-    }
-
-    public void setSubSectionDescription(String desc) {
-        SectionQuestionAnswer sectionQuestionAnswer = sections.get(sections.size() - 1);
-        sectionQuestionAnswer.setSubSectionDescription(desc);
-    }
-
-    public void addNewQuestion(String txt) {
-        SectionQuestionAnswer sectionQuestionAnswer = sections.get(sections.size() - 1);
-        sectionQuestionAnswer.addNewQuestion(txt);
+    public void appendSubSectionDescription(String txt) {
+        QuestionAnswer questionnaire = questions.get(questions.size()-1);
+        questionnaire.appendToSubSectionDescription(txt);
     }
 
     public void appendToQuestion(String txt) {
-        SectionQuestionAnswer sectionQuestionAnswer = sections.get(sections.size() - 1);
-        sectionQuestionAnswer.appendToQuestion(txt);
+        QuestionAnswer questionnaire = questions.get(questions.size()-1);
+        questionnaire.appendToQuestion(txt);
     }
 
     public void appendToAnswer(String txt) {
-        SectionQuestionAnswer sectionQuestionAnswer = sections.get(sections.size() - 1);
-        sectionQuestionAnswer.appendToAnswer(txt);
+        QuestionAnswer questionnaire = questions.get(questions.size()-1);
+        questionnaire.appendToAnswer(txt);
     }
+
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public List<QuestionAnswer> getQuestions() { return questions; }
+    public void setQuestions(List<QuestionAnswer> questions) { this.questions = questions; }
 
     public void print() {
-        System.out.printf("Title: %s\n\n", title);
-        for (SectionQuestionAnswer sectionQuestionAnswer : sections) {sectionQuestionAnswer.print();}
+        System.out.println("\nTitle: " + title);
+        for (QuestionAnswer questionnaire : questions) {questionnaire.print();}
     }
 
+    public void prettyPrint() throws JsonProcessingException {
+        ObjectMapper mapper = new ObjectMapper();
+        //String jsonBook = mapper.writeValueAsString(this);
+        //System.out.println(jsonBook);
+        String indentedBook = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        System.out.println(indentedBook);
+    }
 }

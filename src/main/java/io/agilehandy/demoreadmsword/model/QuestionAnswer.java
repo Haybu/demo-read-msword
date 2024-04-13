@@ -1,26 +1,40 @@
 package io.agilehandy.demoreadmsword.model;
 
+import com.fasterxml.jackson.annotation.JsonGetter;
+
 public class QuestionAnswer {
 
+    private StringBuffer section;
+    private StringBuffer subSection;
+    private StringBuffer subSectionDescription;
     private StringBuffer question;
     private StringBuffer answer;
 
     public QuestionAnswer() {}
 
+    @JsonGetter(value = "answer")
     public String getAnswer() {
-        return answer.toString();
+        return answer == null? null : answer.toString();
     }
 
-    public void setAnswer(StringBuffer answer) {
-        this.answer = answer;
-    }
-
+    @JsonGetter(value = "question")
     public String getQuestion() {
-        return question.toString();
+        return question == null? null : question.toString();
     }
 
-    public void setQuestion(StringBuffer question) {
-        this.question = question;
+    @JsonGetter(value = "subsection-comment")
+    public String getSubSectionDescription() {
+        return subSectionDescription == null? null : subSectionDescription.toString();
+    }
+
+    @JsonGetter(value = "subsection")
+    public String getSubSection() {
+        return subSection == null? null : subSection.toString();
+    }
+
+    @JsonGetter(value = "section")
+    public String getSection() {
+        return section == null? null : section.toString();
     }
 
     public void appendToQuestion(String txt) {
@@ -38,8 +52,37 @@ public class QuestionAnswer {
         }
     }
 
+    public void appendToSection(String txt) {
+        if (section == null) {
+            section = new StringBuffer(txt);
+        } else {
+            section.append(txt + " ");
+        }
+    }
+
+    public void appendToSubSection(String txt) {
+        if (subSection == null) {
+            subSection = new StringBuffer(txt);
+        } else {
+            subSection.append(txt + " ");
+        }
+    }
+
+    public void appendToSubSectionDescription(String txt) {
+        if (subSectionDescription == null) {
+            subSectionDescription = new StringBuffer(txt);
+        } else {
+            subSectionDescription.append(txt + " ");
+        }
+    }
+
     public void print() {
-        System.out.println("Question: " + question.toString() + "\n\n Answer: " + answer.toString() + "\n\n");
+        System.out.println("\nSection: " + this.section);
+        if (this.subSection != null)
+            System.out.println("\nSubSection: " + this.subSection);
+        if (this.subSectionDescription != null)
+            System.out.println("\nSubSectionDescription: " + this.subSectionDescription);
+        System.out.println("\n\nQuestion: " + question.toString() + "\n\nAnswer: " + answer.toString());
     }
 
 }

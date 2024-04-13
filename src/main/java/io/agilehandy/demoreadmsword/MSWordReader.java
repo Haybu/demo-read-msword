@@ -2,7 +2,6 @@ package io.agilehandy.demoreadmsword;
 
 import io.agilehandy.demoreadmsword.model.PartLabels;
 import io.agilehandy.demoreadmsword.model.RFPDocument;
-import io.agilehandy.demoreadmsword.model.SectionQuestionAnswer;
 import io.micrometer.common.util.StringUtils;
 import jakarta.annotation.PostConstruct;
 import org.apache.poi.xwpf.usermodel.*;
@@ -30,6 +29,7 @@ public class MSWordReader {
     private RFPDocument rfpDocument = new RFPDocument();
 
     private Pattern normalTextPattern, sectionTextPattern,  subSectionTextPattern, questionTextPattern;
+    private String section, subSection, subSectionDescripton;
 
     //private final String normalTextRegex = "^(?!\\d).+$";
     //private final String normalTextRegex = "[a-zA-Z0-9-_:]+";
@@ -54,7 +54,7 @@ public class MSWordReader {
             XWPFDocument doc = new XWPFDocument(Files.newInputStream(Paths.get(FILE_PATH)));
             List<IBodyElement> bodyElements = doc.getBodyElements();
             this.readBodyElements(bodyElements);
-            rfpDocument.print();
+            rfpDocument.prettyPrint();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -67,18 +67,8 @@ public class MSWordReader {
             }  else if (bodyElement instanceof XWPFTable) {
                 this.readTable((XWPFTable) bodyElement);
             }
-            //else if (bodyElement instanceof XWPFRun) {
-                //this.readRun((XWPFRun) bodyElement);
-            //}
         }
     }
-
-    /**
-    private void readRun(XWPFRun run) {
-        System.out.println("=== Run ===");
-        System.out.println(run.getParagraph().getText());
-    }
-     */
 
     // title or question
     private void readParagraph(XWPFParagraph paragraph) {
@@ -89,7 +79,7 @@ public class MSWordReader {
             if (label == PartLabels.TITLE) {
                 rfpDocument.setTitle(txt);
             } else if (label == PartLabels.QUESTION) {
-                rfpDocument.addNewQuestion(txt);
+                rfpDocument.addNewQuestion(txt, section, subSection, subSectionDescripton);
             } else if (label == PartLabels.QUESTION_CONT) {
                 rfpDocument.appendToQuestion(txt);
             }
@@ -98,7 +88,7 @@ public class MSWordReader {
 
     }
 
-    // section, subsection, answer
+    // section, subSection, subSectionDescription, answer
     private void readTable(XWPFTable table) {
         //System.out.println("=== Table ===");
         List<XWPFTableRow> rows = table.getRows();
@@ -108,9 +98,14 @@ public class MSWordReader {
             //txt = this.trimLastCharacter(txt, CELL_SEPARATOR);
             this.setLabelForRow(txt);
             if (label == PartLabels.SECTION) {
-                rfpDocument.addNewSection(txt);
+                //rfpDocument.appendSection(txt);
+                section = txt;
             } else if (label == PartLabels.SUBSECTION) {
-                rfpDocument.setSubSectionName(txt);
+                //rfpDocument.appendSubSection(txt);
+                subSection = txt;
+            } else if (label == PartLabels.SUBSECTION_DESCRIPTION) {
+                    //rfpDocument.appendSubSection(txt);
+                    subSectionDescripton = txt;
             } else if (label == PartLabels.ANSWER || label == PartLabels.ANSWER_CONT) {
                 rfpDocument.appendToAnswer(txt + "\n");
             }
@@ -146,7 +141,7 @@ public class MSWordReader {
 
     // title, questions
     private void setLabelForParagraph(String txt) {
-        System.out.println("set label for paragraph: " + txt);
+        //System.out.println("set label for paragraph: " + txt);
         Matcher matcher = normalTextPattern.matcher(txt);
         boolean found = false;
         boolean match = matcher.find();
@@ -167,12 +162,12 @@ public class MSWordReader {
         if(!found) {
             label = PartLabels.NOT_VALID;
         }
-        System.out.println("label: " + label.name());
+        //System.out.println("label: " + label.name());
     }
 
     // section, subsection, subsectionDescription, answer
     private void setLabelForRow(String txt) {
-        System.out.println("set label for row: " + txt);
+        //System.out.println("set label for row: " + txt);
         boolean found = false;
 
         Matcher matcher = subSectionTextPattern.matcher(txt);
@@ -209,53 +204,8 @@ public class MSWordReader {
         if(!found) {
             label = PartLabels.NOT_VALID;
         }
-        System.out.println("label: " + label.name());
+        //System.out.println("label: " + label.name());
     }
-
-    /**
-    @Deprecated
-    private void setLabel(String txt) {
-        Matcher matcher = normalTextPattern.matcher(txt);
-        boolean found = false;
-        if (matcher.find() && label == PartLabels.NONE) {
-            label = PartLabels.TITLE;
-            found = true;
-        }
-
-        if (!found) {
-            matcher = sectionTextPattern.matcher(txt);
-            if (matcher.find()) {
-                label = PartLabels.SECTION;
-                found = true;
-            }
-        }
-
-        if (!found) {
-            matcher = subSectionTextPattern.matcher(txt);
-            if (matcher.find()) {
-                label = PartLabels.SUBSECTION;
-                found = true;
-            }
-        }
-
-        if (!found) {
-            matcher = questionTextPattern.matcher(txt);
-            if (matcher.find()) {
-                label = PartLabels.QUESTION;
-                found = true;
-            }
-        }
-    }
-
-    private String trimLastCharacter(String txt, char character) {
-        if (StringUtils.isEmpty(txt))
-            return txt;
-        else if (txt.trim().charAt(txt.trim().length() - 1) == character)
-            return trimLastCharacter(txt.trim().substring(0, txt.trim().length() - 1), character);
-        else
-            return txt.trim();
-    }
-    */
 
 }
 
