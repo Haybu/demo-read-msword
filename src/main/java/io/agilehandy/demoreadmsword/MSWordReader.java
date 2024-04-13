@@ -49,12 +49,14 @@ public class MSWordReader {
     }
 
     public void read() {
-        final String FILE_PATH = "/Users/hmohamed/Downloads/Credence NationalMedicalRFI2023_LargeMarket_Extract.docx";
+        final String INPUT_FILE_PATH = "/Users/hmohamed/Downloads/Credence NationalMedicalRFI2023_LargeMarket_Extract.docx";
+        final String OUTPUT_FILE_PATH = "/Users/hmohamed/Downloads/Credence NationalMedicalRFI2023_LargeMarket_Extract.json";
         try {
-            XWPFDocument doc = new XWPFDocument(Files.newInputStream(Paths.get(FILE_PATH)));
+            XWPFDocument doc = new XWPFDocument(Files.newInputStream(Paths.get(INPUT_FILE_PATH)));
             List<IBodyElement> bodyElements = doc.getBodyElements();
             this.readBodyElements(bodyElements);
             rfpDocument.prettyPrint();
+            rfpDocument.saveToFile(OUTPUT_FILE_PATH);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -196,6 +198,7 @@ public class MSWordReader {
                 label = PartLabels.ANSWER_CONT;
                 found = true;
             } else if (match && label == PartLabels.SUBSECTION ) {
+                System.out.println("Found subsection description");//////
                 label = PartLabels.SUBSECTION_DESCRIPTION;
                 found = true;
             }

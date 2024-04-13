@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.common.util.StringUtils;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,11 +62,25 @@ public class RFPDocument {
         for (QuestionAnswer questionnaire : questions) {questionnaire.print();}
     }
 
-    public void prettyPrint() throws JsonProcessingException {
+    public String prettyString() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         //String jsonBook = mapper.writeValueAsString(this);
-        //System.out.println(jsonBook);
+        //return jsonBook;
         String indentedBook = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(this);
-        System.out.println(indentedBook);
+        return indentedBook;
+    }
+
+    public void prettyPrint() throws JsonProcessingException {
+        System.out.println(prettyString());
+    }
+
+    public void saveToFile(String fileName) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(fileName));
+            writer.write(prettyString());
+            writer.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
