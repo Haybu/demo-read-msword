@@ -36,8 +36,8 @@ public class MSWordReader {
     //private final String normalTextRegex = "[a-zA-Z0-9-_:]+";
     private final String normalTextRegex = ".+";
     private final String SectionRegex = "^\\d(?!(\\.))\\s*.*(Answers|Questions)";
-    private final String subSectionRegex = "^\\d[\\.\\d]{1}\\s*.*(Answers|Questions)";
-    private final String subSubSectionRegex = "^\\d[\\.\\d]{2}\\s*.*(Answers|Questions)";
+    private final String subSectionRegex = "^\\d\\.\\d+(?!(\\.\\d))\\s*.*(Answers|Questions)";
+    private final String subSubSectionRegex = "^\\d\\.\\d+\\.\\d+(?!(\\.\\d))\\s*.*(Answers|Questions)";
     private final String questionRegex = "^\\d[\\.\\d]+\\s((?!(Answers|Questions)).)*";
 
     private final char  CELL_SEPARATOR = ':';
@@ -176,7 +176,8 @@ public class MSWordReader {
 
         Matcher matcher = subSubSectionTextPattern.matcher(txt);
         if (!found) {
-            if (matcher.find() && (label == PartLabels.SUB_SECTION || label == PartLabels.ANSWER)) {
+            if (matcher.find() && (label == PartLabels.SUB_SECTION || label == PartLabels.ANSWER
+                    || label == PartLabels.SUB_SECTION_DESCRIPTION)) {
                 label = PartLabels.SUB_SUB_SECTION;
                 found = true;
             }
@@ -184,7 +185,8 @@ public class MSWordReader {
 
         if (!found) {
             matcher = subSectionTextPattern.matcher(txt);
-            if (matcher.find() && (label == PartLabels.SECTION || label == PartLabels.SUB_SECTION)) {
+            if (matcher.find() && (label == PartLabels.SECTION || label == PartLabels.SUB_SECTION
+                    || label == PartLabels.ANSWER)) {
                 label = PartLabels.SUB_SECTION;
                 found = true;
             }
