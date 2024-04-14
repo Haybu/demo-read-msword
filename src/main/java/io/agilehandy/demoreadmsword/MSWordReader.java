@@ -30,14 +30,14 @@ public class MSWordReader {
 
     private Pattern normalTextPattern, sectionTextPattern
             ,  subSectionTextPattern, subSubSectionTextPattern, questionTextPattern;
-    private String section, subSection, subSectionDescription, subSubSection;
+    private String section, subSection, subSectionDescription
+            , subSubSection, subSubSectionDescription
+            , subSubSubSection, subSubSubSectionDescription;
 
-    //private final String normalTextRegex = "^(?!\\d).+$";
-    //private final String normalTextRegex = "[a-zA-Z0-9-_:]+";
     private final String normalTextRegex = ".+";
     private final String SectionRegex = "^\\d(?!(\\.))\\s*.*(Answers|Questions)";
     private final String subSectionRegex = "^\\d\\.\\d+(?!(\\.\\d))\\s*.*(Answers|Questions)";
-    private final String subSubSectionRegex = "^\\d\\.\\d+\\.\\d+(?!(\\.\\d))\\s*.*(Answers|Questions)";
+    private final String subSubSectionRegex = "^[\\.\\d]+\\s*.*(Answers|Questions)";
     private final String questionRegex = "^\\d[\\.\\d]+\\s((?!(Answers|Questions)).)*";
 
     private final char  CELL_SEPARATOR = ':';
@@ -84,7 +84,9 @@ public class MSWordReader {
             if (label == PartLabels.TITLE) {
                 rfpDocument.setTitle(txt);
             } else if (label == PartLabels.QUESTION) {
-                rfpDocument.addNewQuestion(txt, section, subSection, subSectionDescription, subSubSection);
+                rfpDocument.addNewQuestion(txt, section, subSection, subSectionDescription
+                        , subSubSection, subSubSectionDescription
+                        , subSubSubSection, subSubSubSectionDescription);
             } else if (label == PartLabels.QUESTION_CONT) {
                 rfpDocument.appendToQuestion(txt);
             }
@@ -93,7 +95,7 @@ public class MSWordReader {
 
     }
 
-    // section, subSection, subSectionDescription, answer
+    // section, subSection, subSectionDescription, subSubSection, SubSubSubSection, answer
     private void readTable(XWPFTable table) {
         //System.out.println("=== Table ===");
         List<XWPFTableRow> rows = table.getRows();
@@ -108,8 +110,14 @@ public class MSWordReader {
                 subSection = txt;
             } else if (label == PartLabels.SUB_SUB_SECTION) {
                     subSubSection = txt;
+            } else if (label == PartLabels.SUB_SUB_SUB_SECTION) {
+                subSubSubSection = txt;
             } else if (label == PartLabels.SUB_SECTION_DESCRIPTION) {
                     subSectionDescription = txt;
+            } else if (label == PartLabels.SUB_SUB_SECTION_DESCRIPTION) {
+                subSubSectionDescription = txt;
+            } else if (label == PartLabels.SUB_SUB_SUB_SECTION_DESCRIPTION) {
+                subSubSubSectionDescription = txt;
             } else if (label == PartLabels.ANSWER || label == PartLabels.ANSWER_CONT) {
                 rfpDocument.appendToAnswer(txt + "\n");
             }
@@ -191,9 +199,18 @@ public class MSWordReader {
 
         if (!found) {
             matcher = subSubSectionTextPattern.matcher(txt);
-            if (matcher.find() && (label == PartLabels.SUB_SECTION || label == PartLabels.ANSWER
+            if (matcher.find() && (label == PartLabels.SUB_SECTION
+                    || label == PartLabels.ANSWER || label == PartLabels.ANSWER_CONT
                     || label == PartLabels.SUB_SECTION_DESCRIPTION)) {
                 label = PartLabels.SUB_SUB_SECTION;
+                found = true;
+            }
+        }
+
+        if (!found) {
+            matcher = subSubSectionTextPattern.matcher(txt);  // 2 subs still for the 3 subs pattern
+            if (matcher.find() && label == PartLabels.SUB_SUB_SECTION) {
+                label = PartLabels.SUB_SUB_SUB_SECTION;
                 found = true;
             }
         }
@@ -208,8 +225,16 @@ public class MSWordReader {
                 label = PartLabels.ANSWER_CONT;
                 found = true;
             } else if (match && label == PartLabels.SUB_SECTION ) {
-                System.out.println("Found subsection description");//////
+                System.out.println("Found sub_section description");//////
                 label = PartLabels.SUB_SECTION_DESCRIPTION;
+                found = true;
+            } else if (match && label == PartLabels.SUB_SUB_SECTION ) {
+                System.out.println("Found sub_sub_section description");//////
+                label = PartLabels.SUB_SUB_SECTION_DESCRIPTION;
+                found = true;
+            } else if (match && label == PartLabels.SUB_SUB_SUB_SECTION ) {
+                System.out.println("Found sub_sub_sub_section description");//////
+                label = PartLabels.SUB_SUB_SUB_SECTION_DESCRIPTION;
                 found = true;
             }
         }

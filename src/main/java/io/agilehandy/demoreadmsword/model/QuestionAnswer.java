@@ -8,6 +8,9 @@ public class QuestionAnswer {
     private StringBuffer subSection;
     private StringBuffer subSectionDescription;
     private StringBuffer subSubSection;
+    private StringBuffer subSubSectionDescription;
+    private StringBuffer subSubSubSection;
+    private StringBuffer subSubSubSectionDescription;
     private StringBuffer question;
     private StringBuffer answer;
 
@@ -23,9 +26,9 @@ public class QuestionAnswer {
         return question == null? null : question.toString();
     }
 
-    @JsonGetter(value = "subsection-comment")
-    public String getSubSectionDescription() {
-        return subSectionDescription == null? null : subSectionDescription.toString();
+    @JsonGetter(value = "section")
+    public String getSection() {
+        return section == null? null : section.toString();
     }
 
     @JsonGetter(value = "sub-section")
@@ -33,14 +36,29 @@ public class QuestionAnswer {
         return subSection == null? null : subSection.toString();
     }
 
+    @JsonGetter(value = "sub-section-comment")
+    public String getSubSectionDescription() {
+        return subSectionDescription == null? null : subSectionDescription.toString();
+    }
+
     @JsonGetter(value = "sub-sub-section")
     public String getSubSubSection() {
         return subSubSection == null? null : subSubSection.toString();
     }
 
-    @JsonGetter(value = "section")
-    public String getSection() {
-        return section == null? null : section.toString();
+    @JsonGetter(value = "sub-sub-section-comment")
+    public String getSubSubSectionDescription() {
+        return subSubSectionDescription == null? null : subSubSectionDescription.toString();
+    }
+
+    @JsonGetter(value = "sub-sub-sub-section")
+    public String getSubSubSubSection() {
+        return subSubSubSection == null? null : subSubSubSection.toString();
+    }
+
+    @JsonGetter(value = "sub-sub-sub-section-comment")
+    public String getSubSubSubSectionDescription() {
+        return subSubSubSectionDescription == null? null : subSubSubSectionDescription.toString();
     }
 
     public void appendToQuestion(String txt) {
@@ -74,6 +92,14 @@ public class QuestionAnswer {
         }
     }
 
+    public void appendToSubSectionDescription(String txt) {
+        if (subSectionDescription == null) {
+            subSectionDescription = new StringBuffer(txt);
+        } else {
+            subSectionDescription.append(txt + " ");
+        }
+    }
+
     public void appendToSubSubSection(String txt) {
         if (subSubSection == null) {
             subSubSection = new StringBuffer(txt);
@@ -82,11 +108,27 @@ public class QuestionAnswer {
         }
     }
 
-    public void appendToSubSectionDescription(String txt) {
-        if (subSectionDescription == null) {
-            subSectionDescription = new StringBuffer(txt);
+    public void appendToSubSubSectionDescription(String txt) {
+        if (subSubSectionDescription == null) {
+            subSubSectionDescription = new StringBuffer(txt);
         } else {
-            subSectionDescription.append(txt + " ");
+            subSubSectionDescription.append(txt + " ");
+        }
+    }
+
+    public void appendToSubSubSubSection(String txt) {
+        if (subSubSubSection == null) {
+            subSubSubSection = new StringBuffer(txt);
+        } else {
+            subSubSubSection.append(txt + " ");
+        }
+    }
+
+    public void appendToSubSubSubSectionDescription(String txt) {
+        if (subSubSubSectionDescription == null) {
+            subSubSubSectionDescription = new StringBuffer(txt);
+        } else {
+            subSubSubSectionDescription.append(txt + " ");
         }
     }
 

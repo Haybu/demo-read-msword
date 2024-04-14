@@ -18,13 +18,17 @@ public class RFPDocument {
     public RFPDocument() {}
 
     public void addNewQuestion(String txt, String section, String subSection, String subSectionDescription
-            , String subSubSection) {
+            , String subSubSection, String subSubSectionDescription
+            , String subSubSubSection, String subSubSubSectionDescription) {
         QuestionAnswer questionnaire = new QuestionAnswer();
         questionnaire.appendToQuestion(txt);
         if (!StringUtils.isEmpty(section)) questionnaire.appendToSection(section);
         if (!StringUtils.isEmpty(subSection)) questionnaire.appendToSubSection(subSection);
         if (!StringUtils.isEmpty(subSectionDescription)) questionnaire.appendToSubSectionDescription(subSectionDescription);
         if (!StringUtils.isEmpty(subSubSection)) questionnaire.appendToSubSubSection(subSubSection);
+        if (!StringUtils.isEmpty(subSubSectionDescription)) questionnaire.appendToSubSubSectionDescription(subSubSectionDescription);
+        if (!StringUtils.isEmpty(subSubSubSection)) questionnaire.appendToSubSubSubSection(subSubSubSection);
+        if (!StringUtils.isEmpty(subSubSubSectionDescription)) questionnaire.appendToSubSubSubSectionDescription(subSubSubSectionDescription);
         if (questions == null) { questions = new ArrayList<>(); }
         questions.add(questionnaire);
     }
