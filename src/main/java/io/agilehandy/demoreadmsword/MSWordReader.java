@@ -28,14 +28,16 @@ public class MSWordReader {
     private PartLabels label = PartLabels.NONE;
     private RFPDocument rfpDocument = new RFPDocument();
 
-    private Pattern normalTextPattern, sectionTextPattern,  subSectionTextPattern, questionTextPattern;
-    private String section, subSection, subSectionDescripton;
+    private Pattern normalTextPattern, sectionTextPattern
+            ,  subSectionTextPattern, subSubSectionTextPattern, questionTextPattern;
+    private String section, subSection, subSectionDescription, subSubSection;
 
     //private final String normalTextRegex = "^(?!\\d).+$";
     //private final String normalTextRegex = "[a-zA-Z0-9-_:]+";
     private final String normalTextRegex = ".+";
     private final String SectionRegex = "^\\d(?!(\\.))\\s*.*(Answers|Questions)";
-    private final String subSectionRegex = "^\\d[\\.\\d]+\\s*.*(Answers|Questions)";
+    private final String subSectionRegex = "^\\d[\\.\\d]{1}\\s*.*(Answers|Questions)";
+    private final String subSubSectionRegex = "^\\d[\\.\\d]{2}\\s*.*(Answers|Questions)";
     private final String questionRegex = "^\\d[\\.\\d]+\\s((?!(Answers|Questions)).)*";
 
     private final char  CELL_SEPARATOR = ':';
@@ -45,18 +47,19 @@ public class MSWordReader {
         normalTextPattern = Pattern.compile(normalTextRegex, Pattern.CASE_INSENSITIVE);
         sectionTextPattern = Pattern.compile(SectionRegex, Pattern.CASE_INSENSITIVE);
         subSectionTextPattern = Pattern.compile(subSectionRegex, Pattern.CASE_INSENSITIVE);
+        subSubSectionTextPattern = Pattern.compile(subSubSectionRegex, Pattern.CASE_INSENSITIVE);
         questionTextPattern = Pattern.compile(questionRegex, Pattern.CASE_INSENSITIVE);
     }
 
     public void read() {
-        final String INPUT_FILE_PATH = "/Users/hmohamed/Downloads/Credence NationalMedicalRFI2023_LargeMarket_Extract.docx";
+        final String INPUT_FILE_PATH = "/Users/hmohamed/Downloads/Credence sectioned NationalMedicalRFI2023_LargeMarket_Extract.docx";
         final String OUTPUT_FILE_PATH = "/Users/hmohamed/Downloads/Credence NationalMedicalRFI2023_LargeMarket_Extract.json";
         try {
             XWPFDocument doc = new XWPFDocument(Files.newInputStream(Paths.get(INPUT_FILE_PATH)));
             List<IBodyElement> bodyElements = doc.getBodyElements();
             this.readBodyElements(bodyElements);
-            rfpDocument.prettyPrint();
-            rfpDocument.saveToFile(OUTPUT_FILE_PATH);
+            //rfpDocument.prettyPrint();
+            //rfpDocument.saveToFile(OUTPUT_FILE_PATH);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -81,7 +84,7 @@ public class MSWordReader {
             if (label == PartLabels.TITLE) {
                 rfpDocument.setTitle(txt);
             } else if (label == PartLabels.QUESTION) {
-                rfpDocument.addNewQuestion(txt, section, subSection, subSectionDescripton);
+                rfpDocument.addNewQuestion(txt, section, subSection, subSectionDescription, subSubSection);
             } else if (label == PartLabels.QUESTION_CONT) {
                 rfpDocument.appendToQuestion(txt);
             }
@@ -100,14 +103,13 @@ public class MSWordReader {
             //txt = this.trimLastCharacter(txt, CELL_SEPARATOR);
             this.setLabelForRow(txt);
             if (label == PartLabels.SECTION) {
-                //rfpDocument.appendSection(txt);
                 section = txt;
-            } else if (label == PartLabels.SUBSECTION) {
-                //rfpDocument.appendSubSection(txt);
+            } else if (label == PartLabels.SUB_SECTION) {
                 subSection = txt;
-            } else if (label == PartLabels.SUBSECTION_DESCRIPTION) {
-                    //rfpDocument.appendSubSection(txt);
-                    subSectionDescripton = txt;
+            } else if (label == PartLabels.SUB_SUB_SECTION) {
+                    subSubSection = txt;
+            } else if (label == PartLabels.SUB_SECTION_DESCRIPTION) {
+                    subSectionDescription = txt;
             } else if (label == PartLabels.ANSWER || label == PartLabels.ANSWER_CONT) {
                 rfpDocument.appendToAnswer(txt + "\n");
             }
@@ -143,7 +145,7 @@ public class MSWordReader {
 
     // title, questions
     private void setLabelForParagraph(String txt) {
-        //System.out.println("set label for paragraph: " + txt);
+        System.out.println("set label for paragraph: " + txt);
         Matcher matcher = normalTextPattern.matcher(txt);
         boolean found = false;
         boolean match = matcher.find();
@@ -164,25 +166,33 @@ public class MSWordReader {
         if(!found) {
             label = PartLabels.NOT_VALID;
         }
-        //System.out.println("label: " + label.name());
+        System.out.println("label: " + label.name());
     }
 
-    // section, subsection, subsectionDescription, answer
+    // section, subsection, subsectionDescription, subsubsection, answer
     private void setLabelForRow(String txt) {
-        //System.out.println("set label for row: " + txt);
+        System.out.println("set label for row: " + txt);
         boolean found = false;
 
-        Matcher matcher = subSectionTextPattern.matcher(txt);
+        Matcher matcher = subSubSectionTextPattern.matcher(txt);
         if (!found) {
-            if (matcher.find() && (label == PartLabels.SECTION || label == PartLabels.SUBSECTION)) {
-                label = PartLabels.SUBSECTION;
+            if (matcher.find() && (label == PartLabels.SUB_SECTION || label == PartLabels.ANSWER)) {
+                label = PartLabels.SUB_SUB_SECTION;
+                found = true;
+            }
+        }
+
+        if (!found) {
+            matcher = subSectionTextPattern.matcher(txt);
+            if (matcher.find() && (label == PartLabels.SECTION || label == PartLabels.SUB_SECTION)) {
+                label = PartLabels.SUB_SECTION;
                 found = true;
             }
         }
 
         if (!found) {
             matcher = sectionTextPattern.matcher(txt);
-            if (matcher.find() && label != PartLabels.QUESTION && label != PartLabels.SUBSECTION) {
+            if (matcher.find() && label != PartLabels.QUESTION && label != PartLabels.SUB_SECTION) {
                 label = PartLabels.SECTION;
                 found = true;
             }
@@ -197,9 +207,9 @@ public class MSWordReader {
             } else if (match && (label == PartLabels.ANSWER || label == PartLabels.ANSWER_CONT)) {
                 label = PartLabels.ANSWER_CONT;
                 found = true;
-            } else if (match && label == PartLabels.SUBSECTION ) {
+            } else if (match && label == PartLabels.SUB_SECTION ) {
                 System.out.println("Found subsection description");//////
-                label = PartLabels.SUBSECTION_DESCRIPTION;
+                label = PartLabels.SUB_SECTION_DESCRIPTION;
                 found = true;
             }
         }
@@ -207,7 +217,7 @@ public class MSWordReader {
         if(!found) {
             label = PartLabels.NOT_VALID;
         }
-        //System.out.println("label: " + label.name());
+        System.out.println("label: " + label.name());
     }
 
 }

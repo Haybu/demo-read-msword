@@ -7,6 +7,7 @@ public class QuestionAnswer {
     private StringBuffer section;
     private StringBuffer subSection;
     private StringBuffer subSectionDescription;
+    private StringBuffer subSubSection;
     private StringBuffer question;
     private StringBuffer answer;
 
@@ -27,9 +28,14 @@ public class QuestionAnswer {
         return subSectionDescription == null? null : subSectionDescription.toString();
     }
 
-    @JsonGetter(value = "subsection")
+    @JsonGetter(value = "sub-section")
     public String getSubSection() {
         return subSection == null? null : subSection.toString();
+    }
+
+    @JsonGetter(value = "sub-sub-section")
+    public String getSubSubSection() {
+        return subSubSection == null? null : subSubSection.toString();
     }
 
     @JsonGetter(value = "section")
@@ -65,6 +71,14 @@ public class QuestionAnswer {
             subSection = new StringBuffer(txt);
         } else {
             subSection.append(txt + " ");
+        }
+    }
+
+    public void appendToSubSubSection(String txt) {
+        if (subSubSection == null) {
+            subSubSection = new StringBuffer(txt);
+        } else {
+            subSubSection.append(txt + " ");
         }
     }
 
