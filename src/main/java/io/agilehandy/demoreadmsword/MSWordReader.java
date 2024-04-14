@@ -174,13 +174,10 @@ public class MSWordReader {
         System.out.println("set label for row: " + txt);
         boolean found = false;
 
-        Matcher matcher = subSubSectionTextPattern.matcher(txt);
-        if (!found) {
-            if (matcher.find() && (label == PartLabels.SUB_SECTION || label == PartLabels.ANSWER
-                    || label == PartLabels.SUB_SECTION_DESCRIPTION)) {
-                label = PartLabels.SUB_SUB_SECTION;
-                found = true;
-            }
+        Matcher matcher = sectionTextPattern.matcher(txt);
+        if (matcher.find() && label != PartLabels.QUESTION && label != PartLabels.SUB_SECTION) {
+            label = PartLabels.SECTION;
+            found = true;
         }
 
         if (!found) {
@@ -193,9 +190,10 @@ public class MSWordReader {
         }
 
         if (!found) {
-            matcher = sectionTextPattern.matcher(txt);
-            if (matcher.find() && label != PartLabels.QUESTION && label != PartLabels.SUB_SECTION) {
-                label = PartLabels.SECTION;
+            matcher = subSubSectionTextPattern.matcher(txt);
+            if (matcher.find() && (label == PartLabels.SUB_SECTION || label == PartLabels.ANSWER
+                    || label == PartLabels.SUB_SECTION_DESCRIPTION)) {
+                label = PartLabels.SUB_SUB_SECTION;
                 found = true;
             }
         }
