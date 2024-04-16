@@ -59,7 +59,7 @@ public class MSWordReader {
             List<IBodyElement> bodyElements = doc.getBodyElements();
             this.readBodyElements(bodyElements);
             rfpDocument.prettyPrint();
-            //rfpDocument.saveToFile(OUTPUT_FILE_PATH);
+            rfpDocument.saveToFile(OUTPUT_FILE_PATH);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
