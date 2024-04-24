@@ -52,7 +52,7 @@ public class MSWordReader {
     }
 
     public void read() {
-        final String INPUT_FILE_PATH = "/Users/hmohamed/Downloads/Credence sectioned NationalMedicalRFI2023_LargeMarket_Extract.docx";
+        final String INPUT_FILE_PATH  = "/Users/hmohamed/Downloads/Credence sectioned NationalMedicalRFI2023_LargeMarket_Extract.docx";
         final String OUTPUT_FILE_PATH = "/Users/hmohamed/Downloads/Credence NationalMedicalRFI2023_LargeMarket_Extract.json";
         try {
             XWPFDocument doc = new XWPFDocument(Files.newInputStream(Paths.get(INPUT_FILE_PATH)));
@@ -92,38 +92,54 @@ public class MSWordReader {
             }
             //System.out.println(paragraph.getText());
         }
-
     }
 
     // section, subSection, subSectionDescription, subSubSection, SubSubSubSection, answer
     private void readTable(XWPFTable table) {
         //System.out.println("=== Table ===");
         List<XWPFTableRow> rows = table.getRows();
+        StringBuffer rowBuffer;
+        StringBuffer tableBuffer = new StringBuffer();
+        int numberOfRows = 0;
         for (XWPFTableRow row : rows) {
-            StringBuffer rowBuffer = this.getRowContent(row);
-            String txt = rowBuffer.toString().trim();
-            //txt = this.trimLastCharacter(txt, CELL_SEPARATOR);
-            this.setLabelForRow(txt);
-            if (label == PartLabels.SECTION) {
-                section = txt;
-                this.resetSections();
-            } else if (label == PartLabels.SUB_SECTION) {
-                subSection = txt;
-                this.resetSubSections();
-            } else if (label == PartLabels.SUB_SUB_SECTION) {
-                    subSubSection = txt;
-                this.resetSubSubSections();
-            } else if (label == PartLabels.SUB_SUB_SUB_SECTION) {
-                subSubSubSection = txt;
-            } else if (label == PartLabels.SUB_SECTION_DESCRIPTION) {
-                    subSectionDescription = txt;
-            } else if (label == PartLabels.SUB_SUB_SECTION_DESCRIPTION) {
-                subSubSectionDescription = txt;
-            } else if (label == PartLabels.SUB_SUB_SUB_SECTION_DESCRIPTION) {
-                subSubSubSectionDescription = txt;
-            } else if (label == PartLabels.ANSWER || label == PartLabels.ANSWER_CONT) {
-                rfpDocument.appendToAnswer(txt + "\n");
+            numberOfRows++;
+            rowBuffer = this.getRowContent(row);
+            if (numberOfRows == 1) {
+                String temp = rowBuffer.toString();
+                temp = temp.replaceAll("<td>", "<th>")
+                        .replaceAll("</td>", "</th>").trim();
+                rowBuffer = new StringBuffer(temp);
             }
+            tableBuffer.append(rowBuffer);
+        }
+        //System.out.println("number of rows in this table = " + numberOfRows);
+        String txt = tableBuffer.toString().trim();
+        //txt = this.trimLastCharacter(txt, CELL_SEPARATOR);
+        if (numberOfRows == 1) {
+            txt = this.clearIfOneRow(txt).trim();
+        } else {
+            txt = "<table>" + txt.trim() + "</table>";
+        }
+        this.setLabelForRow(txt);
+        if (label == PartLabels.SECTION) {
+            section = txt.trim();
+            this.resetSections();
+        } else if (label == PartLabels.SUB_SECTION) {
+            subSection = txt.trim();
+            this.resetSubSections();
+        } else if (label == PartLabels.SUB_SUB_SECTION) {
+            subSubSection = txt.trim();
+            this.resetSubSubSections();
+        } else if (label == PartLabels.SUB_SUB_SUB_SECTION) {
+            subSubSubSection = txt.trim();
+        } else if (label == PartLabels.SUB_SECTION_DESCRIPTION) {
+            subSectionDescription = txt.trim();
+        } else if (label == PartLabels.SUB_SUB_SECTION_DESCRIPTION) {
+            subSubSectionDescription = txt.trim();
+        } else if (label == PartLabels.SUB_SUB_SUB_SECTION_DESCRIPTION) {
+            subSubSubSectionDescription = txt.trim();
+        } else if (label == PartLabels.ANSWER || label == PartLabels.ANSWER_CONT) {
+            rfpDocument.appendToAnswer(txt.trim() + "\n");
         }
     }
 
@@ -133,13 +149,23 @@ public class MSWordReader {
         List<XWPFTableCell> cells = row.getTableCells();
         String cellContent;
         int cellCount = 0;
+        String temp;
         for (XWPFTableCell cell : cells) {
             cellCount++;
             cellContent = this.getCellContent(cell);
-            if (!StringUtils.isEmpty(cellContent))
-                rowTextBuffer.append(cellContent);
-            if (cellCount > 1)
-                rowTextBuffer.append(" " + CELL_SEPARATOR + " ");
+            if (cellCount == 0 && !StringUtils.isEmpty(cellContent)) { // first cell
+                rowTextBuffer.append(cellContent.trim());
+            } else if (cellCount == 1 && !StringUtils.isEmpty(cellContent)) {
+                temp = rowTextBuffer.toString();
+                rowTextBuffer = new StringBuffer("<td>" + temp.trim() + "</td>");
+                rowTextBuffer.append("<td>" + cellContent.trim() + "</td>");
+            } else if (cellCount > 1 && !StringUtils.isEmpty(cellContent)) {
+                rowTextBuffer.append("<td>" + cellContent.trim() + "</td>");
+            }
+        }
+        if (!rowTextBuffer.isEmpty() && rowTextBuffer.toString().contains("<td>")) {
+            temp = rowTextBuffer.toString();
+            rowTextBuffer = new StringBuffer("<tr>" + temp + "</tr>");
         }
         //System.out.println(rowTextBuffer);
         return rowTextBuffer;
@@ -152,6 +178,17 @@ public class MSWordReader {
             return txt;
         }
         return "";
+    }
+
+    private String clearIfOneRow(String txt) {
+        //System.out.println("Clearing tags");
+        return txt.replaceAll("<tr>", "")
+                .replaceAll("</tr>", "")
+                .replaceAll("<td>", "")
+                .replaceAll("</td>", "")
+                .replaceAll("<th>", "")
+                .replaceAll("</th>", "")
+                .trim();
     }
 
     // title, questions
